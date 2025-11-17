@@ -23,15 +23,109 @@ Use the sync script to generate prompts in formats compatible with various AI co
 node scripts/sync.js
 ```
 
-This will create tool-specific prompt formats for:
-- **Claude Projects** (`.md` with YAML frontmatter)
-- **GitHub Copilot** (`.prompt.md` files)  
-- **Cursor** (plain `.md` files)
-- **Gemini CLI** (`.toml` files)
+The script will interactively prompt you to:
+1. **Select source directory** (default: `./prompts`)
+2. **Choose target AI tools**:
+   - 1 = Claude Code
+   - 2 = Gemini CLI
+   - 3 = GitHub Copilot
+   - 4 = Cursor
+   - 5 = All of the above
+3. **Specify output directory** (default: `./output`)
 
-### 2. Import Prompts to Your AI Tool
+**Example run:**
+```bash
+$ node scripts/sync.js
+Enter source prompts directory (default: ./prompts): [Enter]
+Select target(s) (comma-separated numbers or 5 for all): 5
+Enter base output directory (default: ./output): [Enter]
+```
 
-After syncing, import the generated prompts into your preferred AI coding assistant and use them as slash commands.
+This will create tool-specific prompt formats:
+- **Claude Code**: `.md` files with YAML frontmatter in `output/claude-code/commands/`
+- **GitHub Copilot**: `.prompt.md` files in `output/github-copilot/prompts/`
+- **Cursor**: `.md` files in `output/cursor/commands/`
+- **Gemini CLI**: `.toml` files in `output/gemini/commands/`
+
+### 2. Install Prompts to Your AI Tool
+
+After generating the prompts, copy them to the appropriate location for your AI tool:
+
+#### **GitHub Copilot**
+
+1. Copy the generated files to your repository:
+   ```bash
+   mkdir -p .github/prompts
+   cp output/github-copilot/prompts/* .github/prompts/
+   ```
+
+2. **Usage**: In GitHub Copilot Chat, reference prompts with:
+   ```
+   #prompt:update-project
+   #prompt:make-spec Add user authentication
+   #prompt:make-design
+   #prompt:implement
+   ```
+
+#### **Cursor**
+
+**Project-level commands** (specific to current project):
+```bash
+mkdir -p .cursor/commands
+cp output/cursor/commands/* .cursor/commands/
+```
+
+**User-level commands** (available in all projects):
+```bash
+mkdir -p ~/.cursor/commands
+cp output/cursor/commands/* ~/.cursor/commands/
+```
+
+**Usage**: In Cursor Agent chat, type `/` to see all available commands:
+```
+/update-project
+/make-spec Add user authentication
+/make-design
+/implement
+```
+
+#### **Claude Code**
+
+**Project-level commands**:
+```bash
+mkdir -p .claude/commands
+cp output/claude-code/commands/* .claude/commands/
+```
+
+**User-level commands**:
+```bash
+mkdir -p ~/.claude/commands
+cp output/claude-code/commands/* ~/.claude/commands/
+```
+
+**Usage**: Use as slash commands in Claude Code:
+```
+/update-project
+/make-spec <your requirements>
+/make-design
+/implement
+```
+
+#### **Gemini CLI**
+
+**Project-level commands**:
+```bash
+mkdir -p .gemini/commands
+cp output/gemini/commands/* .gemini/commands/
+```
+
+**User-level commands**:
+```bash
+mkdir -p ~/.gemini/commands
+cp output/gemini/commands/* ~/.gemini/commands/
+```
+
+**Usage**: Reference commands in Gemini CLI as configured per your setup.
 
 ## Available Prompts
 
