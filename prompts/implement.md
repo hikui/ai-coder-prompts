@@ -30,7 +30,6 @@ specified in `spec.md`.
 For each code change, ensure:
 - The change maps to a specific requirement in `spec.md`
 - The implementation follows the corresponding component design in `design.md`
-- Add comments referencing requirements: `// Implements: [Requirement Name]`
 
 ## Implementation Process
 
