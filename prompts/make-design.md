@@ -8,12 +8,15 @@ You are a senior software architect. Your task is to analyze the `spec.md` file 
 create a comprehensive system design document `design.md` that translates requirements 
 into a concrete technical architecture.
 
+**Input Location**: Read the spec.md file from `spec-history/active/spec.md`
+**Output Location**: Create the design.md file at `spec-history/active/design.md`
+
 ## Process Overview
 
 Follow this systematic approach:
 
 1. **Read and Understand**
-   - Read `spec.md` thoroughly to understand all requirements
+   - Read `spec-history/active/spec.md` thoroughly to understand all requirements
    - Read `README.md` (if exists) to understand current system overview
    - Read `project.md` (if exists) to understand project structure and conventions
 
@@ -135,7 +138,7 @@ Important: do NOT write implementation plan here
 
 Before finalizing design.md, verify:
 
-- [ ] All requirements from spec.md are addressed
+- [ ] All requirements from spec-history/active/spec.md are addressed
 - [ ] Technology choices are justified
 - [ ] Security considerations are documented
 - [ ] Trade-offs are acknowledged
@@ -148,6 +151,6 @@ The `design.md` should be concise. Your audience are experienced developers.
 ---
 
 Now, begin by:
-1. Reading spec.md
+1. Reading spec-history/active/spec.md
 2. Reading README.md and project.md (if they exist)
 3. Researching appropriate technologies

@@ -132,7 +132,7 @@ cp output/gemini/commands/* ~/.gemini/commands/
 ### `/update-project`
 **Purpose**: Analyze and document your codebase structure, conventions, and context.
 
-**Output**: Creates or updates `project.md` with comprehensive project documentation including:
+**Output**: Creates or updates `project.md` in the project root with comprehensive project documentation including:
 - Directory structure and organization
 - Code conventions and patterns
 - Dependencies and configuration
@@ -143,7 +143,7 @@ cp output/gemini/commands/* ~/.gemini/commands/
 
 **Usage**: `/make-spec Add user authentication with JWT tokens`
 
-**Output**: Generates `spec.md` containing:
+**Output**: Generates `spec-history/active/spec.md` containing:
 - Functional requirements breakdown
 - Technical constraints and assumptions
 - API specifications and data models
@@ -152,9 +152,9 @@ cp output/gemini/commands/* ~/.gemini/commands/
 ### `/make-design`
 **Purpose**: Create technical design based on existing specifications.
 
-**Prerequisites**: Requires `spec.md` and `project.md`
+**Prerequisites**: Requires `spec-history/active/spec.md` and `project.md`
 
-**Output**: Produces `design.md` with:
+**Output**: Produces `spec-history/active/design.md` with:
 - System architecture decisions
 - Component interactions and data flow
 - Database schema and API design
@@ -163,17 +163,52 @@ cp output/gemini/commands/* ~/.gemini/commands/
 ### `/implement`
 **Purpose**: Generate code implementation following the established design.
 
-**Prerequisites**: Requires `spec.md`, `design.md`, and `project.md`
+**Prerequisites**: Requires `spec-history/active/spec.md`, `spec-history/active/design.md`, and `project.md`
 
 **Output**: Creates actual code files implementing the specified features
 
+### `/make-archive`
+**Purpose**: Archive the current active specifications and design documents to a timestamped historical folder.
+
+**Prerequisites**: Requires `spec-history/active/spec.md` (and optionally `spec-history/active/design.md`)
+
+**Output**: Moves active spec and design files to `spec-history/{yyyy-MM-dd}-{sequence}-{title}/`
+- Archives are automatically dated and sequenced
+- Title is extracted from the specification content
+- Active folder is cleared for new work
+
+## Document Organization
+
+This workflow uses a structured approach to manage specifications and designs:
+
+### Active Documents
+- **Location**: `spec-history/active/`
+- **Files**: `spec.md`, `design.md`
+- **Purpose**: Contains the current working specification and design documents
+
+### Historical Archives
+- **Location**: `spec-history/{yyyy-MM-dd}-{sequence}-{title}/`
+- **Format**: Date-sequenced folders with descriptive titles
+- **Purpose**: Preserves historical versions of specifications and designs
+- **Examples**: 
+  - `spec-history/2024-11-19-01-user-authentication/`
+  - `spec-history/2024-11-19-02-payment-integration/`
+  - `spec-history/2024-12-01-01-api-rate-limiting/`
+
+### Project Documentation
+- **Location**: Project root
+- **File**: `project.md`
+- **Purpose**: Central project documentation that persists across all spec/design iterations
+
 ## Recommended Workflow
 
+### Initial Setup
 1. **Document Your Project**
    ```
    /update-project
    ```
 
+### For Each Feature/Requirement
 2. **Define Requirements**
    ```
    /make-spec <describe your feature or requirement>
@@ -188,6 +223,18 @@ cp output/gemini/commands/* ~/.gemini/commands/
    ```
    /implement
    ```
+
+5. **Archive Completed Work** (Optional but Recommended)
+   ```
+   /make-archive
+   ```
+   This archives the spec and design to a historical folder, clearing the active workspace for the next feature.
+
+### Workflow Benefits
+- **Traceability**: Historical archives maintain a complete record of all feature specifications
+- **Clean Workspace**: Active folder always contains only current work
+- **Easy Reference**: Date-sequenced archives make it easy to find past decisions
+- **Version History**: Each feature's spec and design are preserved with timestamps
 
 ## License
 
