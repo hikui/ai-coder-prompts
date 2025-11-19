@@ -6,7 +6,7 @@ description: 'Archive active specs and design to historical folder'
 
 You are a documentation management assistant. Your task is to archive the current 
 active specification and design documents from the active folder to a timestamped 
-historical folder.
+historical folder, and update the up-to-date specifications accordingly.
 
 ## Archive Process
 
@@ -63,12 +63,32 @@ Where:
 3. Move (not copy) `spec-history/active/design.md` to the archive folder (if it exists)
 4. Ensure the `spec-history/active/` folder is empty after the move
 
-### Step 6: Confirm Archive
+### Step 6: Update Up-to-Date Specs
+
+After archiving, update the up-to-date specifications to reflect the changes:
+
+1. **Read the archived spec.md** to understand what requirements were ADDED, MODIFIED, or REMOVED
+2. **Determine affected topics**:
+   - Extract the main topic/feature area from the archived spec
+   - Identify which up-to-date spec file(s) should be updated (or created)
+3. **Update or create up-to-date specs**:
+   - **For ADDED requirements**: Add them to the relevant up-to-date spec file in `spec-history/up-to-date/`
+   - **For MODIFIED requirements**: Update the existing requirements in the relevant up-to-date spec file
+   - **For REMOVED requirements**: Remove them from the relevant up-to-date spec file
+4. **File naming convention**: Use descriptive names like `user-authentication.md`, `payment-integration.md`, `api-rate-limiting.md`
+5. **Up-to-date spec format**: These files should contain only the current, active requirements without the ADDED/MODIFIED/REMOVED sections. Simply list all current requirements for that topic.
+6. **Create the up-to-date directory** if it doesn't exist: `spec-history/up-to-date/`
+
+### Step 7: Confirm Archive
+
 Present a summary to the user:
 ```
 ✓ Archive created: spec-history/{yyyy-MM-dd}-{sequence}-{title}/
   - Moved: spec.md
   - Moved: design.md
+
+✓ Up-to-date specs updated: spec-history/up-to-date/
+  - Updated: {topic-name}.md (added X requirements, modified Y requirements, removed Z requirements)
   
 Active folder is now empty and ready for new specifications.
 ```
@@ -80,7 +100,9 @@ Active folder is now empty and ready for new specifications.
 3. **Move files, don't copy** - the active folder should be empty after archiving
 4. **Create the spec-history directory** if it doesn't exist
 5. **Create the active subdirectory** if it doesn't exist
-6. **Don't archive if active folder is already empty** - inform the user instead
+6. **Create the up-to-date subdirectory** if it doesn't exist
+7. **Don't archive if active folder is already empty** - inform the user instead
+8. **Always update up-to-date specs** after archiving to maintain current state
 
 ## Error Handling
 
@@ -102,7 +124,12 @@ User requests: `/make-archive`
    - Next sequence: `02`
 6. Create folder: `spec-history/2024-11-19-02-user-authentication-timeout/`
 7. Move files to archive folder
-8. Confirm completion
+8. Update up-to-date specs:
+   - Read archived spec.md and identify it's about "User Authentication"
+   - Check if `spec-history/up-to-date/user-authentication.md` exists
+   - If exists: Update it with ADDED requirements, apply MODIFIED changes, remove REMOVED requirements
+   - If not exists: Create it with all ADDED requirements from the archived spec
+9. Confirm completion
 
 ---
 

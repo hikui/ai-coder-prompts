@@ -143,6 +143,8 @@ cp output/gemini/commands/* ~/.gemini/commands/
 
 **Usage**: `/make-spec Add user authentication with JWT tokens`
 
+**How it works**: Compares new requirements against existing up-to-date specs in `spec-history/up-to-date/` to automatically categorize each requirement as ADDED (new), MODIFIED (changed), or REMOVED (deprecated).
+
 **Output**: Generates `spec-history/active/spec.md` containing:
 - Functional requirements breakdown
 - Technical constraints and assumptions
@@ -168,11 +170,13 @@ cp output/gemini/commands/* ~/.gemini/commands/
 **Output**: Creates actual code files implementing the specified features
 
 ### `/make-archive`
-**Purpose**: Archive the current active specifications and design documents to a timestamped historical folder.
+**Purpose**: Archive the current active specifications and design documents to a timestamped historical folder, and update the up-to-date specs.
 
 **Prerequisites**: Requires `spec-history/active/spec.md` (and optionally `spec-history/active/design.md`)
 
-**Output**: Moves active spec and design files to `spec-history/{yyyy-MM-dd}-{sequence}-{title}/`
+**Output**: 
+- Moves active spec and design files to `spec-history/{yyyy-MM-dd}-{sequence}-{title}/`
+- Updates corresponding up-to-date spec files in `spec-history/up-to-date/` to reflect ADDED, MODIFIED, and REMOVED requirements
 - Archives are automatically dated and sequenced
 - Title is extracted from the specification content
 - Active folder is cleared for new work
@@ -185,6 +189,13 @@ This workflow uses a structured approach to manage specifications and designs:
 - **Location**: `spec-history/active/`
 - **Files**: `spec.md`, `design.md`
 - **Purpose**: Contains the current working specification and design documents
+
+### Up-to-Date Specifications
+- **Location**: `spec-history/up-to-date/`
+- **Files**: Topic-specific spec files (e.g., `user-authentication.md`, `payment-integration.md`)
+- **Purpose**: Maintains the current state of all implemented features and requirements
+- **Usage**: Referenced by `/make-spec` to determine if requirements are ADDED, MODIFIED, or REMOVED
+- **Maintenance**: Automatically updated by `/make-archive` when archiving completed work
 
 ### Historical Archives
 - **Location**: `spec-history/{yyyy-MM-dd}-{sequence}-{title}/`
@@ -235,6 +246,8 @@ This workflow uses a structured approach to manage specifications and designs:
 - **Clean Workspace**: Active folder always contains only current work
 - **Easy Reference**: Date-sequenced archives make it easy to find past decisions
 - **Version History**: Each feature's spec and design are preserved with timestamps
+- **Current State Tracking**: Up-to-date specs provide a single source of truth for all implemented features
+- **Smart Requirement Analysis**: Automatic detection of added, modified, and removed requirements by comparing against up-to-date specs
 
 ## License
 

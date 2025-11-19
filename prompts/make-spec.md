@@ -7,6 +7,10 @@ changes.
 
 You may read `project.md` for detailed system introduction before making specs.
 
+**Reference Location**: Check `spec-history/up-to-date/` folder for existing up-to-date 
+specifications. Compare the new requirements against these existing specs to determine 
+whether each requirement is ADDED (new), MODIFIED (changed), or REMOVED (deprecated).
+
 **Output Location**: Create the spec.md file at `spec-history/active/spec.md`
 
 ## Output Format
@@ -54,6 +58,24 @@ For deprecated functionality:
 ```
 
 ---
+
+## Comparing Against Up-to-Date Specs
+
+Before writing the spec, follow these steps:
+
+1. **Check for Existing Specs**:
+   - Look in `spec-history/up-to-date/` for existing specification files
+   - These files represent the current state of all implemented features
+   - Each file in this folder covers a specific topic or feature area
+
+2. **Identify Changes**:
+   - **ADDED**: Requirements that don't exist in any up-to-date spec
+   - **MODIFIED**: Requirements that update or change existing specifications
+   - **REMOVED**: Requirements that deprecate functionality described in up-to-date specs
+
+3. **Handle Multiple Topics**:
+   - If requirements span multiple topics, check all relevant up-to-date spec files
+   - Clearly indicate which existing spec(s) are being modified or extended
 
 ## Writing Guidelines
 
