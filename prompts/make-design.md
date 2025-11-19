@@ -110,7 +110,7 @@ Your `design.md` should strictly follow this format:
 
 ```
 ## Context
-[Background, constraints, stakeholders]
+[Background, constraints]
 
 ## Goals / Non-Goals
 - Goals: [...]
