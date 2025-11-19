@@ -7,6 +7,8 @@ changes.
 
 You may read `project.md` for detailed system introduction before making specs.
 
+**Output Location**: Create the spec.md file at `spec-history/active/spec.md`
+
 ## Output Format
 
 Create a specification document with three main sections: ADDED, MODIFIED, and 
