@@ -56,8 +56,7 @@ For each requirement:
 1. Create/modify files according to `design.md` structure
 2. Implement ALL scenarios from `spec.md`
 3. Follow the exact API signatures, interfaces, and patterns from `design.md`
-4. Add inline comments linking code to requirements
-5. Handle edge cases as specified
+4. Handle edge cases as specified
 
 ### Step 4: Verification Checklist
 Before considering implementation complete, verify:
@@ -77,7 +76,6 @@ Before considering implementation complete, verify:
 
 **Code Quality:**
 - [ ] Code follows project conventions from `project.md`
-- [ ] Inline comments reference relevant requirements
 - [ ] Error handling matches specification
 - [ ] No undocumented assumptions or shortcuts
 
