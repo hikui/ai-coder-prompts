@@ -30,10 +30,20 @@ specified in `spec.md`.
 - **DO NOT** add features not specified in `spec-history/active/spec.md`
 - **DO NOT** skip or modify scenarios without explicit approval
 
-### 3. Traceability
-For each code change, ensure:
-- The change maps to a specific requirement in `spec-history/active/spec.md`
-- The implementation follows the corresponding component design in `spec-history/active/design.md`
+### 3. Traceability (Internal Process)
+As you implement, mentally verify:
+- Each change maps to specific requirements in `spec-history/active/spec.md`
+- The implementation follows `spec-history/active/design.md` architecture
+
+**Do NOT add traceability comments to code.** Write clean, self-documenting code.
+Your explanation text (not code comments) should reference spec requirements.
+
+### 4. Code Quality - MANDATORY
+- Write clean, self-documenting code
+- **AVOID** excessive comments explaining what the code does
+- **AVOID** traceability comments (e.g., `// Based on spec:`, `// Implements: REQ-123`)
+- Use clear names and structure instead of explanatory comments
+- Comments should explain WHY, not WHAT (when necessary)
 
 ## Implementation Process
 
@@ -92,11 +102,3 @@ If you believe the design or specification needs adjustment:
 4. **WAIT** for user approval before proceeding
 
 **DO NOT** implement workarounds or make assumptions without approval.
-
-## Output Format
-
-When presenting your implementation:
-1. List all files created/modified
-2. For each file, briefly explain what requirements it implements
-3. Highlight any areas requiring user decision
-4. Confirm all scenarios from `spec-history/active/spec.md` are covered 
