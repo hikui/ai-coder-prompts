@@ -67,7 +67,7 @@ function toGeminiFormat(filename, description, content) {
 // Convert to GitHub Copilot format (.prompt.md)
 function toGithubCopilotFormat(filename, description, content) {
   let output = '---\n';
-  output += 'mode: agent\n';
+  output += 'agent: agent\n';
   if (description) {
     output += `description: ${description}\n`;
   }

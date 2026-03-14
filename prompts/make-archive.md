@@ -6,7 +6,8 @@ description: 'Archive active specs and design to historical folder'
 
 You are a documentation management assistant. Your task is to archive the current 
 active specification and design documents from the active folder to a timestamped 
-historical folder, and update the up-to-date specifications accordingly.
+historical folder, and update the up-to-date specifications so they match the 
+actual code implementation.
 
 ## Archive Process
 
@@ -63,21 +64,29 @@ Where:
 3. Move (not copy) `spec-history/active/design.md` to the archive folder (if it exists)
 4. Ensure the `spec-history/active/` folder is empty after the move
 
-### Step 6: Update Up-to-Date Specs
+### Step 6: Update Up-to-Date Specs from Actual Implementation
 
-After archiving, update the up-to-date specifications to reflect the changes:
+After archiving, update the up-to-date specifications to reflect what is actually implemented in code:
 
-1. **Read the archived spec.md** to understand what requirements were ADDED, MODIFIED, or REMOVED
-2. **Determine affected topics**:
-   - Extract the main topic/feature area from the archived spec
-   - Identify which up-to-date spec file(s) should be updated (or created)
-3. **Update or create up-to-date specs**:
-   - **For ADDED requirements**: Add them to the relevant up-to-date spec file in `spec-history/up-to-date/`
-   - **For MODIFIED requirements**: Update the existing requirements in the relevant up-to-date spec file
-   - **For REMOVED requirements**: Remove them from the relevant up-to-date spec file
-4. **File naming convention**: Use descriptive names like `user-authentication.md`, `payment-integration.md`, `api-rate-limiting.md`
-5. **Up-to-date spec format**: These files should contain only the current, active requirements without the ADDED/MODIFIED/REMOVED sections. Simply list all current requirements for that topic.
-6. **Create the up-to-date directory** if it doesn't exist: `spec-history/up-to-date/`
+1. **Inspect implementation evidence first**:
+   - Use git to review uncommitted changes related to the archived topic, such as `git status --short`, `git diff --stat`, `git diff`, and `git diff --cached`
+   - Read the relevant diffs to understand the current implementation
+   - Only if the current working tree is not enough to understand the feature, inspect recent committed changes for the affected files with commands such as `git log --oneline -- <path>` and `git show <commit> -- <path>`
+2. **Read the archived `spec.md` and `design.md`** (if present):
+   - Identify requirements that were intended, changed, or removed
+   - Compare those requirements against the code and git evidence
+3. **Determine affected topics**:
+   - Extract the main topic or feature area from the archived documents
+   - Identify which up-to-date spec file(s) should be updated or created
+4. **Update or create up-to-date specs**:
+   - Add requirements that are actually implemented
+   - Update requirements so they match the current code behavior, not the planned wording from the archived docs
+   - Remove requirements that are no longer implemented
+   - If code behavior differs from `spec.md` or `design.md`, capture that difference by documenting the implemented behavior and noting the mismatch briefly when it is materially important
+   - If the code includes relevant implemented behavior that is missing from the archived docs, include it
+5. **File naming convention**: Use descriptive names like `user-authentication.md`, `payment-integration.md`, `api-rate-limiting.md`
+6. **Up-to-date spec format**: These files should contain the current implemented requirements for the topic, without ADDED/MODIFIED/REMOVED sections. If needed, include a short `Implementation Notes` section for meaningful mismatches between the archived docs and the code, but never list unimplemented planned behavior as current.
+7. **Create the up-to-date directory** if it doesn't exist: `spec-history/up-to-date/`
 
 ### Step 7: Confirm Archive
 
@@ -88,7 +97,9 @@ Present a summary to the user:
   - Moved: design.md
 
 ✓ Up-to-date specs updated: spec-history/up-to-date/
-  - Updated: {topic-name}.md (added X requirements, modified Y requirements, removed Z requirements)
+   - Updated: {topic-name}.md (implemented requirements added/updated/removed to match code)
+   - Compared against: working tree changes, staged changes, and recent commits when needed
+   - Noted mismatches between archived docs and implementation: {count}
   
 Active folder is now empty and ready for new specifications.
 ```
@@ -103,6 +114,8 @@ Active folder is now empty and ready for new specifications.
 6. **Create the up-to-date subdirectory** if it doesn't exist
 7. **Don't archive if active folder is already empty** - inform the user instead
 8. **Always update up-to-date specs** after archiving to maintain current state
+9. **Treat the code as the source of truth** for up-to-date specs; use archived docs as intent, not final authority
+10. **Check uncommitted changes first** and inspect recent committed changes only when necessary to understand the implementation
 
 ## Error Handling
 
@@ -110,6 +123,7 @@ Active folder is now empty and ready for new specifications.
 - If `spec-history/active/` is empty: "Active folder is empty. Nothing to archive."
 - If unable to determine a title: Use "untitled-spec" as the title
 - If archive folder already exists: "Archive folder already exists. Please resolve manually."
+- If git history is unavailable or the folder is not a git repository: inspect the current code directly and tell the user that recent-change comparison could not be completed
 
 ## Example Workflow
 
@@ -125,10 +139,12 @@ User requests: `/make-archive`
 6. Create folder: `spec-history/2024-11-19-02-user-authentication-timeout/`
 7. Move files to archive folder
 8. Update up-to-date specs:
-   - Read archived spec.md and identify it's about "User Authentication"
+   - Review `git status`, `git diff`, and staged changes for the affected implementation
+   - Read archived spec.md and design.md and identify it's about "User Authentication"
    - Check if `spec-history/up-to-date/user-authentication.md` exists
-   - If exists: Update it with ADDED requirements, apply MODIFIED changes, remove REMOVED requirements
-   - If not exists: Create it with all ADDED requirements from the archived spec
+   - If exists: Update it so it matches the actual implemented behavior, not just the archived wording
+   - If not exists: Create it from the implemented requirements confirmed in code and git diffs
+   - If the code differs from the archived docs: capture that mismatch briefly in `Implementation Notes`
 9. Confirm completion
 
 ---
