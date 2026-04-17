@@ -88,6 +88,18 @@ function toCursorFormat(filename, description, content) {
   return output;
 }
 
+// Convert to Codex prompts format (plain .md files)
+function toCodexFormat(filename, description, content) {
+  // Codex prompt files are stored as markdown prompts.
+  // Optionally include description as a comment at the top.
+  let output = '';
+  if (description) {
+    output += `<!-- ${description} -->\n\n`;
+  }
+  output += content;
+  return output;
+}
+
 // Get all .md files from directory recursively
 function getMarkdownFiles(dir, baseDir = dir) {
   const files = [];
@@ -161,6 +173,12 @@ function processFiles(sourceDir, targetConfig) {
         outputExt = '.md';
         outputPath = path.join(targetConfig.outputDir, relativePathNoExt + outputExt);
         break;
+
+      case 'codex':
+        outputContent = toCodexFormat(filename, description, bodyContent);
+        outputExt = '.md';
+        outputPath = path.join(targetConfig.outputDir, relativePathNoExt + outputExt);
+        break;
         
       default:
         console.log(`${colors.red}Unknown format: ${targetConfig.format}${colors.reset}`);
@@ -216,9 +234,10 @@ async function main() {
   console.log(`  2. Gemini CLI`);
   console.log(`  3. GitHub Copilot`);
   console.log(`  4. Cursor`);
-  console.log(`  5. All of the above`);
+  console.log(`  5. Codex`);
+  console.log(`  6. All of the above`);
   
-  const selection = await prompt(`\n${colors.yellow}Select target(s)${colors.reset} (comma-separated numbers or 5 for all): `);
+  const selection = await prompt(`\n${colors.yellow}Select target(s)${colors.reset} (comma-separated numbers or 6 for all): `);
   const selections = selection.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
   
   if (selections.length === 0) {
@@ -233,7 +252,7 @@ async function main() {
   // Map selections to target configurations
   const targetConfigs = [];
   
-  if (selections.includes(5) || selections.includes(1)) {
+  if (selections.includes(6) || selections.includes(1)) {
     targetConfigs.push({
       name: 'Claude Code',
       format: 'claude-code',
@@ -241,7 +260,7 @@ async function main() {
     });
   }
   
-  if (selections.includes(5) || selections.includes(2)) {
+  if (selections.includes(6) || selections.includes(2)) {
     targetConfigs.push({
       name: 'Gemini CLI',
       format: 'gemini',
@@ -249,7 +268,7 @@ async function main() {
     });
   }
   
-  if (selections.includes(5) || selections.includes(3)) {
+  if (selections.includes(6) || selections.includes(3)) {
     targetConfigs.push({
       name: 'GitHub Copilot',
       format: 'github-copilot',
@@ -257,11 +276,19 @@ async function main() {
     });
   }
   
-  if (selections.includes(5) || selections.includes(4)) {
+  if (selections.includes(6) || selections.includes(4)) {
     targetConfigs.push({
       name: 'Cursor',
       format: 'cursor',
       outputDir: path.join(outputDir, 'cursor', 'commands')
+    });
+  }
+
+  if (selections.includes(6) || selections.includes(5)) {
+    targetConfigs.push({
+      name: 'Codex',
+      format: 'codex',
+      outputDir: path.join(outputDir, 'codex', 'prompts')
     });
   }
   
@@ -307,6 +334,12 @@ async function main() {
           console.log(`  User: Copy files to ${colors.yellow}~/.cursor/commands/${colors.reset}`);
           console.log(`  Usage: Type ${colors.yellow}/${colors.reset} in Cursor Agent chat to see all commands`);
           break;
+
+        case 'codex':
+          console.log(`  Project: Copy files to ${colors.yellow}.codex/prompts/${colors.reset}`);
+          console.log(`  User: Copy files to ${colors.yellow}~/.codex/prompts/${colors.reset}`);
+          console.log(`  Usage: Open Codex and use the prompt picker or ${colors.yellow}/${colors.reset} prompt menu to insert a saved prompt`);
+          break;
       }
     }
   }
@@ -328,5 +361,6 @@ module.exports = {
   toGeminiFormat,
   toGithubCopilotFormat,
   toCursorFormat,
+  toCodexFormat,
   processFiles
 };

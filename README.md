@@ -30,14 +30,15 @@ The script will interactively prompt you to:
    - 2 = Gemini CLI
    - 3 = GitHub Copilot
    - 4 = Cursor
-   - 5 = All of the above
+   - 5 = Codex
+   - 6 = All of the above
 3. **Specify output directory** (default: `./output`)
 
 **Example run:**
 ```bash
 $ node scripts/sync.js
 Enter source prompts directory (default: ./prompts): [Enter]
-Select target(s) (comma-separated numbers or 5 for all): 5
+Select target(s) (comma-separated numbers or 6 for all): 5
 Enter base output directory (default: ./output): [Enter]
 ```
 
@@ -46,6 +47,7 @@ This will create tool-specific prompt formats:
 - **GitHub Copilot**: `.prompt.md` files in `output/github-copilot/prompts/`
 - **Cursor**: `.md` files in `output/cursor/commands/`
 - **Gemini CLI**: `.toml` files in `output/gemini/commands/`
+- **Codex**: `.md` files in `output/codex/prompts/`
 
 ### 2. Install Prompts to Your AI Tool
 
@@ -109,6 +111,28 @@ cp output/claude-code/commands/* ~/.claude/commands/
 /make-spec <your requirements>
 /make-design
 /implement
+```
+
+#### **Codex**
+
+**Project-level prompts**:
+```bash
+mkdir -p .codex/prompts
+cp output/codex/prompts/* .codex/prompts/
+```
+
+**User-level prompts**:
+```bash
+mkdir -p ~/.codex/prompts
+cp output/codex/prompts/* ~/.codex/prompts/
+```
+
+**Usage**: Open Codex and insert a saved prompt from the prompt picker or `/` menu:
+```
+update-project
+make-spec Add user authentication
+make-design
+implement
 ```
 
 #### **Gemini CLI**
