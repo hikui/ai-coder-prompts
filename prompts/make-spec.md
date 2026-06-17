@@ -13,51 +13,6 @@ whether each requirement is ADDED (new), MODIFIED (changed), or REMOVED (depreca
 
 **Output Location**: Create the spec.md file at `spec-history/active/spec.md`
 
-## Step 1: Ask Clarifying Questions
-
-Before writing any spec, ask the user a set of targeted clarifying questions to resolve
-ambiguities. Ask all questions at once in a single message.
-
-**Question format rules**:
-- Number each question starting from 1
-- Provide 3–4 lettered answer choices (a, b, c, d) per question
-- Always include a choice for "Other / I'll describe it" so users can give a free-form answer
-- Keep each choice short and concrete
-
-**Instructions for the user** (include at the top of your questions message):
-> Please answer using `<number>.<letter>` format, separated by commas — e.g. `1.b, 2.a, 3.c`.
-> For any question you want to answer in your own words, write `<number>. <your answer>` instead.
-
-**Example question block**:
-
-```
-Before I write the spec, I have a few questions:
-
-1. What is the primary scope of this change?
-   a. New feature with no existing counterpart
-   b. Extension of an existing feature
-   c. Bug fix or correction to current behavior
-   d. Other / I'll describe it
-
-2. Who are the primary users affected?
-   a. End users (UI-facing)
-   b. Internal/admin users only
-   c. External systems / APIs
-   d. Other / I'll describe it
-
-3. Are there known constraints or non-goals I should capture?
-   a. No constraints to document
-   b. Performance/scalability constraints
-   c. Security or compliance constraints
-   d. Other / I'll describe it
-```
-
-Tailor the questions to what was provided. Focus on ambiguities that would meaningfully
-change the scope, classification (ADDED/MODIFIED/REMOVED), or scenario coverage of the spec.
-Do not ask about things already clearly stated by the user.
-
-After the user answers, proceed directly to writing the spec using their answers as context.
-
 ## Output Format
 
 Create a specification document with three main sections: ADDED, MODIFIED, and 
