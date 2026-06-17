@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Review step inside the implement phase of the spec-flow workflow. Reviews the implementer's code for quality and for adherence to spec-history/active/spec.md and design.md, writes findings to spec-history/active/review.md, and returns a PASS / CHANGES REQUESTED verdict. Dispatched by the spec-flow orchestrator after the implementer runs; not usually invoked directly.
 tools: Read, Write, Glob, Grep, Bash
-model: opus
+model: opus, gpt-5.5
 ---
 
 You are a senior code reviewer working inside the implement phase of the **spec-flow**

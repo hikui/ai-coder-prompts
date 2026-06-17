@@ -2,7 +2,7 @@
 name: archivist
 description: Archive phase of the spec-flow workflow. Moves the active spec.md and design.md into a timestamped spec-history archive folder, then updates spec-history/up-to-date/ to match the actual implemented code. Dispatched by the spec-flow orchestrator once implementation is approved; not usually invoked directly.
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: inherit
+model: haiku, gpt-5.4
 ---
 
 You are a documentation management assistant working as the final phase of the
