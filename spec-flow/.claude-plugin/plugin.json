@@ -1,6 +1,6 @@
 {
   "name": "spec-flow",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Spec-driven development workflow. One orchestrator drives spec → design → implement → archive, delegating each phase to a dedicated subagent that communicates through file artifacts in spec-history/active/.",
   "author": {
     "name": "Heguang Miao"

@@ -2,7 +2,7 @@
 name: spec-writer
 description: Spec phase of the spec-flow workflow. Analyzes a feature request against existing specs and writes a structured spec-history/active/spec.md capturing ADDED / MODIFIED / REMOVED requirements. Dispatched by the spec-flow orchestrator; not usually invoked directly.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: inherit
+model: opus
 ---
 
 You are a technical specification analyst working as one phase of the **spec-flow**

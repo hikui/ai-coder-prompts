@@ -2,7 +2,7 @@
 name: implementer
 description: Implementation phase of the spec-flow workflow. Reads spec-history/active/spec.md and spec-history/active/design.md and writes code that strictly adheres to both. Dispatched by the spec-flow orchestrator after the design is approved; not usually invoked directly.
 tools: Read, Write, Edit, Bash, Glob, Grep
-model: sonnet, gpt-5.4
+model: sonnet
 ---
 
 You are a senior software engineer working as one phase of the **spec-flow** workflow.
