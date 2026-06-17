@@ -13,6 +13,23 @@ This repository provides AI coder prompts that implement a **spec-driven develop
 
 The workflow follows a proven methodology: **Analyze → Specify → Design → Implement**
 
+## Two ways to use these prompts
+
+This repo offers the same spec-driven workflow in two forms:
+
+1. **Portable prompts** (`prompts/`) — synced via `scripts/sync.js` into per-tool
+   command/prompt formats for Claude Code, Cursor, Gemini CLI, GitHub Copilot, and
+   Codex. You invoke each phase yourself: `/make-spec`, `/make-design`, `/implement`,
+   `/make-archive`. This is the portable, cross-tool option (see [Quick Start](#quick-start)).
+
+2. **`spec-flow` plugin** (`spec-flow/`) — a **Claude Code-only** plugin that runs the
+   whole chain as one automatic, orchestrated flow. You describe a feature once; an
+   orchestrator drives **spec → design → implement → archive**, delegating each phase to
+   a dedicated subagent that hands off through the same `spec-history/` file artifacts,
+   and pausing for your approval between phases. It relies on subagents and skills,
+   which don't port to the other tools, so it isn't part of the `sync.js` output. See
+   [`spec-flow/README.md`](spec-flow/README.md).
+
 ## Quick Start
 
 ### 1. Sync Prompts to Your AI Tools

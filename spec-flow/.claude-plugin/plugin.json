@@ -1,0 +1,18 @@
+{
+  "name": "spec-flow",
+  "version": "0.1.0",
+  "description": "Spec-driven development workflow. One orchestrator drives spec → design → implement → archive, delegating each phase to a dedicated subagent that communicates through file artifacts in spec-history/active/.",
+  "author": {
+    "name": "Heguang Miao"
+  },
+  "homepage": "https://github.com/intelligencebank/ai-coder-prompts",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven",
+    "workflow",
+    "orchestrator",
+    "subagents",
+    "design",
+    "specification"
+  ]
+}

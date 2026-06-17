@@ -1,0 +1,13 @@
+{
+  "name": "ai-coder-prompts",
+  "owner": {
+    "name": "Heguang Miao"
+  },
+  "plugins": [
+    {
+      "name": "spec-flow",
+      "source": "./spec-flow",
+      "description": "Spec-driven development workflow. One orchestrator drives spec → design → implement → archive, delegating each phase to a dedicated subagent that hands off through file artifacts in spec-history/active/."
+    }
+  ]
+}
