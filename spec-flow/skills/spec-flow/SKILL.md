@@ -30,10 +30,12 @@ configured in each subagent's definition — you don't manage it.
 Each phase is a fresh subagent with its own context. They hand work to each other
 through **files on disk**, not through you. The spec-writer writes `spec.md`; the
 designer reads that same `spec.md` and writes `design.md`; the implementer reads both;
-the code-reviewer reads them plus the code and writes `review.md`; the implementer
-reads `review.md` to fix what's flagged; the archivist reads everything plus the code.
-This is the communication protocol — the artifacts in `spec-history/active/` *are* the
-shared state.
+the code-reviewer reads them plus the code and reports its findings straight back to
+you; you relay the blocking and major findings to the implementer on the fix round;
+the archivist reads everything plus the code. The persistent artifacts in
+`spec-history/active/` (`spec.md`, `design.md`) *are* the shared state. Review findings
+are deliberately **not** persisted to a file — they flow through you so you stay the
+single point of control over the implement/review loop.
 
 This matters for a concrete reason: it keeps **your** context lean. A subagent that
 just wrote a 400-line design doesn't dump those 400 lines back into your conversation.
@@ -77,11 +79,13 @@ Dispatch the `spec-writer` subagent. Give it the full feature request in the use
 own words plus any clarifications you gathered. Tell it to write
 `spec-history/active/spec.md` and return the handoff report.
 
-**Gate:** read the `spec.md` it wrote, present the requirements to the user (the ADDED
-/ MODIFIED / REMOVED breakdown), and ask them to confirm or adjust. If they want
-changes, re-dispatch `spec-writer` with their feedback rather than editing the file
-yourself — the subagent owns that artifact. Loop until the user is happy. Do not move
-to design until the spec is approved.
+**Gate — stop and wait:** read the `spec.md` it wrote, present the requirements to the
+user (the ADDED / MODIFIED / REMOVED breakdown), and then **stop and explicitly ask
+the user to confirm the spec before you go any further.** Do not dispatch the designer
+in the same turn — end your message with the question and wait for the user's reply. If
+they want changes, re-dispatch `spec-writer` with their feedback rather than editing the
+file yourself — the subagent owns that artifact. Loop until the user explicitly approves.
+Only an explicit go-ahead from the user opens the design phase.
 
 ### Phase 2 — Design
 
@@ -92,25 +96,38 @@ Because a subagent can't have a back-and-forth with the user mid-run, the design
 records genuine architectural choices in its `DECISIONS NEEDED` and in an
 `## Open Questions` section of `design.md`, with a recommendation for each.
 
-**Gate:** read `design.md`, present the approach and any open decisions to the user.
-If there are real either/or choices, get the user's pick. When a decision changes the
-design, re-dispatch the `designer` with the resolved choices so it updates the file.
-Don't proceed to implementation until the design is approved.
+**Gate — stop and wait:** read `design.md`, present the approach and any open decisions
+to the user, then **stop and explicitly ask the user to confirm the design.** Do not
+dispatch the implementer in the same turn — end your message with the question and wait
+for the user's reply. If there are real either/or choices, get the user's pick. When a
+decision changes the design, re-dispatch the `designer` with the resolved choices so it
+updates the file. Loop until the user explicitly approves. Don't proceed to
+implementation until the design is approved.
 
 ### Phase 3 — Implement & Review
 
-This phase is an internal loop between two subagents before it reaches the user gate.
+**Acknowledgement gate — stop and wait before any code is written:** the approved
+design does *not* automatically start implementation. Before you dispatch the
+`implementer`, **stop and explicitly ask the user to acknowledge that you're about to
+begin building.** End your message with that question and wait for their reply. Only
+once the user acknowledges do you start the loop below.
+
+After that acknowledgement, this phase is an internal loop between two subagents before
+it reaches the next user gate.
 
 1. **Implement.** Dispatch the `implementer` subagent. It reads
    `spec-history/active/spec.md` and `design.md` and writes code that adheres to them,
    then reports what it built and any deviations.
 
 2. **Review.** Dispatch the `code-reviewer` subagent. It reads the spec, the design, and
-   the code, checks quality and adherence to both, writes findings to
-   `spec-history/active/review.md`, and returns `VERDICT: PASS` or `CHANGES REQUESTED`.
+   the code, checks quality and adherence to both, and **reports its findings directly
+   back to you in its handoff report** (it does not write a file). The report includes
+   `VERDICT: PASS` or `CHANGES REQUESTED` along with the blocking / major / minor
+   findings inline.
 
 3. **Loop on changes.** If the verdict is `CHANGES REQUESTED`, re-dispatch the
-   `implementer` and point it at `review.md` to fix the blocking and major issues, then
+   `implementer` and **relay the reviewer's blocking and major findings in the dispatch
+   prompt** (paste them — there's no `review.md` for the implementer to read), then
    re-dispatch the `code-reviewer`. Repeat until it passes. Cap this at about **three
    rounds** — if it's still failing after that, stop looping and bring the situation to
    the user, because something deeper is usually wrong (a flawed design, an unclear

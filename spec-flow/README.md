@@ -30,8 +30,8 @@ You describe a feature
 spec-writer  →  designer  →  implementer ⇄ code-reviewer  →  archivist
    │               │              │            │             │
    ▼               ▼              ▼            ▼             ▼
-spec.md    ──►  design.md  ──►   code   ◄──  review.md  ──►  archive + up-to-date specs
-        (the file artifacts are the communication protocol)
+spec.md    ──►  design.md  ──►   code   ◄── review findings ─►  archive + up-to-date specs
+        (spec.md/design.md are the persisted protocol; review findings flow through the orchestrator)
 ```
 
 - **Orchestrator** — a skill that runs in the main session (the only place that can
@@ -39,12 +39,13 @@ spec.md    ──►  design.md  ──►   code   ◄──  review.md  ──
 - **Subagents** — one per phase, each a fresh context focused on a single job. They
   never hand work back through the conversation; they **write files** and return a
   short handoff report.
-- **Files as the protocol** — the artifacts in `spec-history/active/` are the shared
-  state. spec-writer writes `spec.md`; designer reads it and writes `design.md`;
-  implementer reads both and writes code; code-reviewer reads everything and writes
-  `review.md`; implementer reads `review.md` to fix what's flagged; archivist reads it
-  all plus the code, then files it away and refreshes `spec-history/up-to-date/` from
-  the real implementation.
+- **Files as the protocol** — the persisted artifacts in `spec-history/active/`
+  (`spec.md`, `design.md`) are the shared state. spec-writer writes `spec.md`; designer
+  reads it and writes `design.md`; implementer reads both and writes code; code-reviewer
+  reads everything and reports its findings to the orchestrator, which relays the
+  blocking/major items to the implementer to fix; archivist reads it all plus the code,
+  then files it away and refreshes `spec-history/up-to-date/` from the real
+  implementation.
 - **Model tiers** — design and review run on a higher-capability model (they set the
   bar and catch mistakes); implementation runs on a standard model (it follows an
   already-vetted design). Configured per subagent via tier aliases, so no specific
@@ -55,9 +56,13 @@ multi-phase build run without the controller's context ballooning.
 
 ## Approval gates
 
-The flow pauses after **spec**, after **design**, and after **implement**. At each gate
-the orchestrator shows you the artifact and waits for your go-ahead. A subagent that
-hits a hard blocker surfaces it immediately rather than waiting for the gate.
+The flow pauses after **spec**, after **design**, **before implementation begins**, and
+after **implement**. At each gate the orchestrator shows you the artifact, then stops
+and explicitly waits for your go-ahead before dispatching the next subagent — it won't
+chain phases in a single turn. Notably, an approved design does not auto-start coding:
+the orchestrator asks you to acknowledge before it dispatches the implementer. A
+subagent that hits a hard blocker surfaces it immediately rather than waiting for the
+gate.
 
 ## Usage
 

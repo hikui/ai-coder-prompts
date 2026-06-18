@@ -22,16 +22,18 @@ contract.
 - **Read** `spec-history/active/spec.md` completely — every ADDED and MODIFIED
   requirement must be implemented; everything in REMOVED must be removed/deprecated.
 - **Read** `project.md` (if it exists) for coding conventions.
-- **Read** `spec-history/active/review.md` **if it exists** — on a re-dispatch you're
-  being asked to fix what a code reviewer flagged (see below).
+- On a re-dispatch, the orchestrator includes the code reviewer's findings **inline in
+  your dispatch prompt** — there is no review file to read. Treat those pasted findings
+  as your fix list (see below).
 
 ## You will be reviewed
 
 After you finish, a code reviewer checks your work against the spec, the design, and a
-quality bar, and writes its findings to `spec-history/active/review.md`. If it requests
-changes, the orchestrator re-dispatches you to address them. When that happens:
+quality bar, and reports its findings to the orchestrator. If it requests changes, the
+orchestrator re-dispatches you with those findings pasted into your prompt. When that
+happens:
 
-- Read `review.md` and fix the **blocking** and **major** issues. Minor nits are
+- Fix the **blocking** and **major** issues the orchestrator relayed. Minor nits are
   optional but cheap to clean up.
 - If you disagree with a finding, don't silently ignore it — fix it or explain why it's
   wrong in your handoff report so the orchestrator can adjudicate.
