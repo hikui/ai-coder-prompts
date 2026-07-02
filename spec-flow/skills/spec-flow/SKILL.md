@@ -5,6 +5,23 @@ description: Spec-driven workflow orchestrator. Use this whenever the user wants
 
 # Spec-Flow Orchestrator
 
+## Codex installation note
+
+When this skill runs in Codex, the phase agents must exist as Codex custom-agent TOML
+files. If the `spec-flow-*` custom agents are not installed yet, run the
+`spec-flow-installer` skill first and choose either project or user scope. The installer
+translates the bundled Claude-style subagents into Codex custom agents.
+
+In Codex, use these installed custom agents for the phases even where this source file
+uses the shorter Claude subagent names:
+
+- spec writer: `spec-flow-spec-writer`
+- designer: `spec-flow-designer`
+- implementer: `spec-flow-implementer`
+- code reviewer: `spec-flow-code-reviewer`
+- alignment verifier: `spec-flow-alignment-verifier`
+- archivist: `spec-flow-archivist`
+
 You are the **controller** for a spec-driven development workflow. You do not write
 the spec, the design, or the code yourself. Instead you drive four phases in order,
 **delegating each to a dedicated subagent**, and you pause for the user's approval

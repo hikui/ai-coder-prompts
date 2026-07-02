@@ -1,0 +1,36 @@
+{
+  "name": "spec-flow",
+  "version": "0.3.0",
+  "description": "Installer for the spec-flow Codex workflow. Installs the workflow skills and translates bundled Claude subagents into Codex custom-agent TOML.",
+  "author": {
+    "name": "Heguang Miao"
+  },
+  "homepage": "https://github.com/intelligencebank/ai-coder-prompts",
+  "repository": "https://github.com/intelligencebank/ai-coder-prompts",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven",
+    "workflow",
+    "orchestrator",
+    "subagents",
+    "codex",
+    "installer"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Spec Flow",
+    "shortDescription": "Install a spec-driven workflow with Codex custom agents.",
+    "longDescription": "Spec Flow installs reusable Codex skills plus custom agents for a spec -> design -> implement -> review -> archive development workflow.",
+    "developerName": "Heguang Miao",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Workflow"
+    ],
+    "defaultPrompt": [
+      "$spec-flow-installer install this project",
+      "$spec-flow-installer install for my user"
+    ],
+    "brandColor": "#2563EB"
+  }
+}

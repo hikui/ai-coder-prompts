@@ -1,7 +1,8 @@
 # spec-flow
 
-A Claude Code plugin that runs the spec-driven development workflow as a single
-**automatic, orchestrated flow** instead of four separate commands.
+A Claude Code plugin and Codex installer plugin that runs the spec-driven development
+workflow as a single **automatic, orchestrated flow** instead of four separate
+commands.
 
 You describe a feature once. An orchestrator drives it through four phases, delegating
 each phase to a dedicated subagent that hands off through file artifacts, and pausing
@@ -36,9 +37,9 @@ spec.md    ──►  design.md  ──►   code   ◄── review findings �
 
 - **Orchestrator** — a skill that runs in the main session (the only place that can
   spawn subagents). It coordinates the phases and stops at each gate for your sign-off.
-- **Subagents** — one per phase, each a fresh context focused on a single job. They
-  never hand work back through the conversation; they **write files** and return a
-  short handoff report.
+- **Subagents / custom agents** — one per phase, each a fresh context focused on a
+  single job. They never hand work back through the conversation; they **write files**
+  and return a short handoff report.
 - **Files as the protocol** — the persisted artifacts in `spec-history/active/`
   (`spec.md`, `design.md`) are the shared state. spec-writer writes `spec.md`; designer
   reads it and writes `design.md`; implementer reads both and writes code; code-reviewer
@@ -76,20 +77,78 @@ things it genuinely can't decide — a hard blocker, or a real ambiguity in the
 requirement itself — because it can't invent your intent. You trade the approval gates
 for automated verification plus the same file-based audit trail.
 
+## Installation
+
+### Claude Code
+
+Copy this directory into a Claude Code plugin location:
+
+```bash
+cp -r spec-flow ~/.claude/plugins/spec-flow
+```
+
+or project-locally:
+
+```bash
+cp -r spec-flow .claude/plugins/spec-flow
+```
+
+### Codex
+
+Codex can load plugin-bundled skills, but custom agents are standalone TOML files under
+`~/.codex/agents/` or `.codex/agents/`. The bundled Node installer handles that gap:
+it installs the workflow skills and translates `agents/*.md` into Codex custom-agent
+TOML on the fly.
+
+Install for the current project:
+
+```bash
+node spec-flow/scripts/install.mjs --scope project
+```
+
+Install for your user:
+
+```bash
+node spec-flow/scripts/install.mjs --scope user
+```
+
+Project scope writes:
+
+- `.agents/skills/spec-flow/`
+- `.agents/skills/update-project/`
+- `.codex/agents/spec-flow-*.toml`
+
+User scope writes:
+
+- `~/.agents/skills/spec-flow/`
+- `~/.agents/skills/update-project/`
+- `~/.codex/agents/spec-flow-*.toml`
+
+Use `--dry-run` to preview the install and `--force` to overwrite an older generated
+install.
+
+The Codex plugin manifest at `.codex-plugin/plugin.json` exposes an installer skill,
+`$spec-flow-installer`, for users who install this as a Codex plugin first.
+
 ## Usage
 
 Just describe what you want to build — e.g. *"spec out and add JWT auth with refresh
 tokens"* — and the orchestrator triggers automatically.
 
-Run `/update-project` once per repo first to generate `project.md`, which gives the
-spec and design phases richer context (optional but recommended).
+Run `/update-project` in Claude Code, or `$spec-flow-update-project` in Codex, once per
+repo first to generate `project.md`, which gives the spec and design phases richer
+context (optional but recommended).
 
 ## Layout
 
 ```
 spec-flow/
 ├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json       # Codex installer plugin manifest
+├── scripts/install.mjs             # installs skills + translates agents to TOML
 ├── skills/spec-flow/SKILL.md      # orchestrator (controller)
+├── skills/spec-flow-installer/SKILL.md
+├── skills/update-project/SKILL.md  # Codex project.md setup skill
 ├── agents/
 │   ├── spec-writer.md             # ← make-spec
 │   ├── designer.md                # ← make-design  (high-end tier; outlines SOLID structure)
