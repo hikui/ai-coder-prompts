@@ -64,6 +64,18 @@ the orchestrator asks you to acknowledge before it dispatches the implementer. A
 subagent that hits a hard blocker surfaces it immediately rather than waiting for the
 gate.
 
+### Auto mode
+
+Say *"auto mode"*, *"run it end to end"*, or *"no gates"* and the orchestrator runs all
+four phases without pausing for your approval. The human gates aren't dropped — an
+`alignment-verifier` subagent stands in for them: after the spec and again after the
+design, it reads your **original request** and confirms the artifacts faithfully and
+completely capture it, looping back to the spec-writer or designer if they don't. The
+implement ⇄ review loop and archive run automatically on top. Auto mode still stops for
+things it genuinely can't decide — a hard blocker, or a real ambiguity in the
+requirement itself — because it can't invent your intent. You trade the approval gates
+for automated verification plus the same file-based audit trail.
+
 ## Usage
 
 Just describe what you want to build — e.g. *"spec out and add JWT auth with refresh
@@ -83,6 +95,7 @@ spec-flow/
 │   ├── designer.md                # ← make-design  (high-end tier; outlines SOLID structure)
 │   ├── implementer.md             # ← implement    (standard tier)
 │   ├── code-reviewer.md           # reviews code vs spec/design + quality (high-end tier)
+│   ├── alignment-verifier.md      # auto-mode gate: verifies spec/design vs the requirement (high-end tier)
 │   └── archivist.md               # ← make-archive
 └── commands/update-project.md     # one-time project.md setup
 ```

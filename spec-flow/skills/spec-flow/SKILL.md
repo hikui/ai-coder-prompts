@@ -160,6 +160,67 @@ next subagent. If you find yourself wanting to skip a gate "to save a round-trip
 that's exactly the moment the gate exists for. The exception is a subagent reporting a
 hard blocker — surface that immediately, don't wait for the gate.
 
+The **one** sanctioned way to run without these gates is **auto mode** (below), which the
+user opts into explicitly and which replaces the human gates with an automated
+alignment verifier — not with nothing. Absent that opt-in, the gates hold.
+
+## Auto mode — gateless, verifier-gated
+
+The user can run the whole chain **without stopping at the human gates**. Trigger auto
+mode when they say things like "auto mode", "run it end to end", "no gates", "don't stop
+to ask me", or "spec out and build X on auto". Confirm you understood the feature (the
+same one or two sharp questions as always — a fuzzy requirement poisons every phase, and
+in auto mode nobody catches it at a gate), then run all four phases in sequence in the
+same flow without pausing for approval between them.
+
+**The human gates don't just disappear — an automated verifier takes their place.** In
+normal mode you show the user the spec and the design and wait for their go-ahead. In
+auto mode the `alignment-verifier` subagent does that judging: it reads the **original
+feature request** and the artifacts and confirms they faithfully and completely capture
+what was asked. Keep the exact wording of the user's request (plus any clarifications)
+so you can paste it into the verifier each time.
+
+Run it like this:
+
+1. **Spec.** Dispatch `spec-writer` as normal.
+2. **Verify the spec.** Dispatch `alignment-verifier`, pasting the original requirement
+   and telling it only `spec.md` exists. If `CHANGES REQUESTED`, re-dispatch
+   `spec-writer` with the verifier's blocking + major misalignments pasted in, then
+   re-verify. Cap at about **two** rounds; if still misaligned, stop and bring it to the
+   user — auto mode doesn't mean loop forever.
+3. **Design.** On `PASS`, dispatch `designer` immediately — no user gate.
+4. **Verify the design.** Dispatch `alignment-verifier` again, pasting the original
+   requirement and telling it the design phase has run so it checks `spec.md + design.md`.
+   Same fix/re-verify loop against `designer`, same ~two-round cap.
+   - If the designer returned real `DECISIONS NEEDED` (a genuine architectural fork with
+     no clear winner), **auto mode does not pick for the user on a decision that shapes
+     the product** — surface it and wait. But when the designer already recorded a
+     recommendation, prefer proceeding with that recommendation and noting it, rather
+     than stopping; only escalate forks where the choices are materially different for
+     the user. Use judgement.
+5. **Implement & review.** On `PASS`, skip the acknowledgement gate and dispatch
+   `implementer`, then run the normal implement ⇄ `code-reviewer` loop (that loop is
+   already automated and stays exactly as specified above, three-round cap included).
+6. **Archive.** When the review passes, dispatch `archivist` without waiting for the
+   user to declare the implementation done.
+
+**What still stops auto mode** — these are not gates you're removing, they're genuine
+failures the flow can't paper over:
+- A subagent reporting a hard `BLOCKERS` (unreadable artifact, can't run tests, missing
+  input) — surface immediately.
+- A verifier or designer reporting `DECISIONS NEEDED` that's a genuine ambiguity in the
+  **requirement itself** — you cannot invent the user's intent; ask.
+- Any loop hitting its round cap without converging — that signals something deeper
+  (flawed requirement, spec/design disagreement); stop and report.
+- The implement/review escalation already defined above (a finding that's really a
+  spec/design flaw) — loop back to the right phase, don't spin.
+
+Report progress as you go so the user can interrupt, and give a single summary at the
+end: what was built, what the verifier and reviewer checked, the archive location, and
+which up-to-date specs changed. Auto mode trades the approval gates for automated
+verification and a clear audit trail — it does **not** trade away surfacing real
+blockers or genuine decisions.
+
 ## If the user only wants one phase
 
 This skill is the full chain, but the user may say "just write the spec" or "redo the
