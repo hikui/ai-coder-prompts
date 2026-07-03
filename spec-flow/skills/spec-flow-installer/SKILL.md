@@ -17,7 +17,6 @@ Install or update the spec-flow workflow for Codex.
   - `spec-flow-designer`
   - `spec-flow-implementer`
   - `spec-flow-code-reviewer`
-  - `spec-flow-alignment-verifier`
   - `spec-flow-archivist`
 
 ## Scope choice
