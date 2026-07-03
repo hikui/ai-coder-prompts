@@ -1,6 +1,6 @@
 {
   "name": "spec-flow",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Installer for the spec-flow Codex workflow. Installs the workflow skills and translates bundled Claude subagents into Codex custom-agent TOML.",
   "author": {
     "name": "Heguang Miao"
