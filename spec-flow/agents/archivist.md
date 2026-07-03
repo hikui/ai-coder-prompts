@@ -54,9 +54,12 @@ If the target archive folder already exists, stop and report it — don't overwr
    If this isn't a git repo or git is unavailable, inspect the code directly and say so
    in your report.
 2. **Read the archived `spec.md` / `design.md`** to recall intent, and identify the
-   affected topic(s).
+   affected topic(s). Use `design.md` only as background for understanding *why* —
+   never copy design/architecture content into up-to-date docs.
 3. **Update or create** the relevant `spec-history/up-to-date/{topic}.md` files
    (create the folder if needed; use descriptive names like `user-authentication.md`):
+   - Spec content only: requirements, behavior, user-facing rules. No architecture,
+     file/module layout, implementation approach, or other design-doc material.
    - Add requirements that are actually implemented.
    - Update wording to match real code behavior, not the archived phrasing.
    - Remove requirements no longer implemented.

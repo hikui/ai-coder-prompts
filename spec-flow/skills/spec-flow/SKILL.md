@@ -2,18 +2,13 @@
 name: spec-flow
 description: Spec-driven workflow orchestrator. Use this whenever the user wants to build a non-trivial feature, change, or capability in a codebase that follows the spec → design → implement → archive process (look for a spec-history/ folder). Trigger it when the user says things like "spec out and build X", "let's add feature Y", "I want to implement Z properly", "run the spec flow for…", or describes a substantial requirement they want turned into code with a paper trail — even if they don't name the workflow. This skill runs in the main session and delegates each phase to a dedicated subagent, pausing for your approval between phases.
 ---
-
 # Spec-Flow Orchestrator
 
 ## Codex installation note
 
-When this skill runs in Codex, the phase agents must exist as Codex custom-agent TOML
-files. If the `spec-flow-*` custom agents are not installed yet, run the
-`spec-flow-installer` skill first and choose either project or user scope. The installer
-translates the bundled Claude-style subagents into Codex custom agents.
+Skill runs in Codex: phase agents must exist as Codex custom-agent TOML files. `spec-flow-*` custom agents not installed yet? Run `spec-flow-installer` skill first, choose project or user scope. Installer translates bundled Claude-style subagents into Codex custom agents.
 
-In Codex, use these installed custom agents for the phases even where this source file
-uses the shorter Claude subagent names:
+In Codex, use these installed custom agents for phases, even where this source file uses shorter Claude subagent names:
 
 - spec writer: `spec-flow-spec-writer`
 - designer: `spec-flow-designer`
@@ -22,49 +17,26 @@ uses the shorter Claude subagent names:
 - alignment verifier: `spec-flow-alignment-verifier`
 - archivist: `spec-flow-archivist`
 
-You are the **controller** for a spec-driven development workflow. You do not write
-the spec, the design, or the code yourself. Instead you drive four phases in order,
-**delegating each to a dedicated subagent**, and you pause for the user's approval
-between phases. Your value is coordination, gate-keeping, and keeping the moving
-parts in sync — not doing the work.
+You **controller** for spec-driven dev workflow. Don't write spec, design, or code yourself. Drive four phases in order, **delegating each to dedicated subagent**, pause for user approval between phases. Your value: coordination, gate-keeping, keep moving parts in sync — not doing work.
 
 The four phases, in order:
 
 1. **Spec** — dispatch the `spec-writer` subagent → produces `spec-history/active/spec.md`
 2. **Design** — dispatch the `designer` subagent → produces `spec-history/active/design.md`
-3. **Implement & Review** — dispatch the `implementer` subagent to write the code, then
-   the `code-reviewer` subagent to review it; loop until the review passes
-4. **Archive** — dispatch the `archivist` subagent → files the work away and refreshes
-   the up-to-date specs from the real code
+3. **Implement & Review** — dispatch `implementer` subagent to write code, then `code-reviewer` subagent to review; loop till review pass
+4. **Archive** — dispatch `archivist` subagent → files work away, refreshes up-to-date specs from real code
 
-The phases run on different model tiers on purpose: design and review use a
-higher-capability model (those phases set the bar and catch mistakes), while
-implementation uses a standard model (it follows an already-vetted design). That's
-configured in each subagent's definition — you don't manage it.
+Phases run different model tiers on purpose: design + review use higher-capability model (set bar, catch mistakes), implementation uses standard model (follows already-vetted design). Configured in each subagent's definition — you don't manage it.
 
 ## Why subagents + files
 
-Each phase is a fresh subagent with its own context. They hand work to each other
-through **files on disk**, not through you. The spec-writer writes `spec.md`; the
-designer reads that same `spec.md` and writes `design.md`; the implementer reads both;
-the code-reviewer reads them plus the code and reports its findings straight back to
-you; you relay the blocking and major findings to the implementer on the fix round;
-the archivist reads everything plus the code. The persistent artifacts in
-`spec-history/active/` (`spec.md`, `design.md`) *are* the shared state. Review findings
-are deliberately **not** persisted to a file — they flow through you so you stay the
-single point of control over the implement/review loop.
+Each phase = fresh subagent, own context. Hand work to each other through **files on disk**, not through you. spec-writer writes `spec.md`; designer reads same `spec.md`, writes `design.md`; implementer reads both; code-reviewer reads them + code, reports findings straight back to you; you relay blocking + major findings to implementer on fix round; archivist reads everything + code. Persistent artifacts in `spec-history/active/` (`spec.md`, `design.md`) *are* shared state. Review findings deliberately **not** persisted to file — flow through you so you stay single point of control over implement/review loop.
 
-This matters for a concrete reason: it keeps **your** context lean. A subagent that
-just wrote a 400-line design doesn't dump those 400 lines back into your conversation.
-It returns a short handoff report and leaves the detail in the file. When you need to
-show the user something at a gate, you read the file yourself. So a long, multi-phase
-build doesn't blow up the orchestrator's context, and each subagent starts clean and
-focused on exactly one job.
+Concrete reason: keeps **your** context lean. Subagent that just wrote 400-line design doesn't dump those 400 lines back into your conversation. Returns short handoff report, leaves detail in file. Need show user something at gate? Read file yourself. Long multi-phase build doesn't blow up orchestrator's context; each subagent starts clean, focused on exactly one job.
 
 ## The handoff report
 
-Every subagent returns a short structured report (it does **not** paste the whole
-artifact). Expect this shape, and tell each subagent to produce it:
+Every subagent returns short structured report (does **not** paste whole artifact). Expect this shape, tell each subagent to produce it:
 
 ```
 ARTIFACT: <path it wrote, e.g. spec-history/active/spec.md>
@@ -74,172 +46,82 @@ BLOCKERS: <anything that stopped it or needs input, or "none">
 NEXT: <what it thinks should happen next>
 ```
 
-If a subagent comes back with `BLOCKERS` or `DECISIONS NEEDED`, that is a gate you
-cannot skip — surface it to the user before moving on.
+Subagent comes back with `BLOCKERS` or `DECISIONS NEEDED`? Gate you cannot skip — surface to user before moving on.
 
 ## Running the flow
 
 ### Before you start
 
-Confirm you understand the feature the user wants. If the request is vague, ask one
-or two sharp questions now — a fuzzy spec poisons every phase downstream. Then tell
-the user briefly what's about to happen ("I'll run this in four phases — spec, design,
-implement, archive — and check in with you after each one").
+Confirm you understand feature user wants. Request vague? Ask one or two sharp questions now — fuzzy spec poisons every phase downstream. Then tell user briefly what's about to happen ("I'll run this in four phases — spec, design, implement, archive — and check in with you after each one").
 
-If there's no `spec-history/` folder yet, that's fine; the spec-writer will create
-`spec-history/active/`. If there's no `project.md`, mention that the `/update-project`
-command can generate one for richer context, but don't block on it.
+No `spec-history/` folder yet? Fine — spec-writer creates `spec-history/active/`. No `project.md`? Mention `/update-project` command can generate one for richer context, but don't block on it.
 
 ### Phase 1 — Spec
 
-Dispatch the `spec-writer` subagent. Give it the full feature request in the user's
-own words plus any clarifications you gathered. Tell it to write
-`spec-history/active/spec.md` and return the handoff report.
+Dispatch `spec-writer` subagent. Give it full feature request in user's own words + any clarifications gathered. Tell it write `spec-history/active/spec.md`, return handoff report.
 
-**Gate — stop and wait:** read the `spec.md` it wrote, present the requirements to the
-user (the ADDED / MODIFIED / REMOVED breakdown), and then **stop and explicitly ask
-the user to confirm the spec before you go any further.** Do not dispatch the designer
-in the same turn — end your message with the question and wait for the user's reply. If
-they want changes, re-dispatch `spec-writer` with their feedback rather than editing the
-file yourself — the subagent owns that artifact. Loop until the user explicitly approves.
-Only an explicit go-ahead from the user opens the design phase.
+**Gate — stop and wait:** read `spec.md` it wrote, present requirements to user (ADDED / MODIFIED / REMOVED breakdown), then **stop, explicitly ask user confirm spec before going further.** Don't dispatch designer same turn — end message with question, wait for reply. Want changes? Re-dispatch `spec-writer` with their feedback, don't edit file yourself — subagent owns that artifact. Loop till user explicitly approves. Only explicit go-ahead opens design phase.
 
 ### Phase 2 — Design
 
-Dispatch the `designer` subagent. It reads `spec-history/active/spec.md` and
-`project.md`, researches as needed, and writes `spec-history/active/design.md`.
+Dispatch `designer` subagent. Reads `spec-history/active/spec.md` + `project.md`, researches as needed, writes `spec-history/active/design.md`.
 
-Because a subagent can't have a back-and-forth with the user mid-run, the designer
-records genuine architectural choices in its `DECISIONS NEEDED` and in an
-`## Open Questions` section of `design.md`, with a recommendation for each.
+Subagent can't back-and-forth with user mid-run, so designer records genuine architectural choices in `DECISIONS NEEDED` + `## Open Questions` section of `design.md`, with recommendation for each.
 
-**Gate — stop and wait:** read `design.md`, present the approach and any open decisions
-to the user, then **stop and explicitly ask the user to confirm the design.** Do not
-dispatch the implementer in the same turn — end your message with the question and wait
-for the user's reply. If there are real either/or choices, get the user's pick. When a
-decision changes the design, re-dispatch the `designer` with the resolved choices so it
-updates the file. Loop until the user explicitly approves. Don't proceed to
-implementation until the design is approved.
+**Gate — stop and wait:** read `design.md`, present approach + open decisions to user, then **stop, explicitly ask user confirm design.** Don't dispatch implementer same turn — end message with question, wait for reply. Real either/or choices? Get user's pick. Decision changes design? Re-dispatch `designer` with resolved choices, updates file. Loop till user explicitly approves. Don't proceed implementation till design approved.
 
 ### Phase 3 — Implement & Review
 
-**Acknowledgement gate — stop and wait before any code is written:** the approved
-design does *not* automatically start implementation. Before you dispatch the
-`implementer`, **stop and explicitly ask the user to acknowledge that you're about to
-begin building.** End your message with that question and wait for their reply. Only
-once the user acknowledges do you start the loop below.
+**Acknowledgement gate — stop, wait before any code written:** approved design does *not* auto-start implementation. Before dispatching `implementer`, **stop, explicitly ask user acknowledge you're about to begin building.** End message with that question, wait for reply. Only once user acknowledges, start loop below.
 
-After that acknowledgement, this phase is an internal loop between two subagents before
-it reaches the next user gate.
+After acknowledgement, phase = internal loop between two subagents before next user gate.
 
-1. **Implement.** Dispatch the `implementer` subagent. It reads
-   `spec-history/active/spec.md` and `design.md` and writes code that adheres to them,
-   then reports what it built and any deviations.
+1. **Implement.** Dispatch `implementer` subagent. Reads `spec-history/active/spec.md` + `design.md`, writes code adhering to both, reports what built + any deviations.
 
-2. **Review.** Dispatch the `code-reviewer` subagent. It reads the spec, the design, and
-   the code, checks quality and adherence to both, and **reports its findings directly
-   back to you in its handoff report** (it does not write a file). The report includes
-   `VERDICT: PASS` or `CHANGES REQUESTED` along with the blocking / major / minor
-   findings inline.
+2. **Review.** Dispatch `code-reviewer` subagent. Reads spec, design, code, checks quality + adherence to both, **reports findings directly back to you in handoff report** (no file written). Report includes `VERDICT: PASS` or `CHANGES REQUESTED` + blocking/major/minor findings inline.
 
-3. **Loop on changes.** If the verdict is `CHANGES REQUESTED`, re-dispatch the
-   `implementer` and **relay the reviewer's blocking and major findings in the dispatch
-   prompt** (paste them — there's no `review.md` for the implementer to read), then
-   re-dispatch the `code-reviewer`. Repeat until it passes. Cap this at about **three
-   rounds** — if it's still failing after that, stop looping and bring the situation to
-   the user, because something deeper is usually wrong (a flawed design, an unclear
-   spec, or disagreement between the two subagents about what's correct).
+3. **Loop on changes.** Verdict `CHANGES REQUESTED`? Re-dispatch `implementer`, **relay reviewer's blocking + major findings in dispatch prompt** (paste them — no `review.md` for implementer to read), then re-dispatch `code-reviewer`. Repeat till passes. Cap ~**three rounds** — still failing after? Stop looping, bring situation to user — something deeper usually wrong (flawed design, unclear spec, or disagreement between subagents on what's correct).
 
-   Watch for the reviewer reporting `DECISIONS NEEDED` or the implementer reporting in
-   `BLOCKERS` that a finding is really a spec/design flaw. That's not a fix-and-retry —
-   it's an escalation: loop back to the design or spec phase (and its gate) instead of
-   spinning the implement/review loop.
+   Watch for reviewer reporting `DECISIONS NEEDED` or implementer reporting in `BLOCKERS` that finding really spec/design flaw. Not fix-and-retry — escalation: loop back to design or spec phase (+ its gate) instead of spinning implement/review loop.
 
-**Gate:** once the review passes, summarize for the user what was implemented and what
-the review checked (and surface any deviations the reviewer accepted). Let them review
-/ test. Don't archive until the user agrees the implementation is done.
+**Gate:** review passes? Summarize for user what implemented + what review checked (surface any deviations reviewer accepted). Let them review/test. Don't archive till user agrees implementation done.
 
 ### Phase 4 — Archive
 
-Dispatch the `archivist` subagent. It moves `spec.md` and `design.md` out of
-`active/` into a timestamped `spec-history/{date}-{seq}-{title}/` folder, then updates
-`spec-history/up-to-date/` to match the **actual code** (treating the code as the
-source of truth, the archived docs as intent).
+Dispatch `archivist` subagent. Moves `spec.md` + `design.md` out of `active/` into timestamped `spec-history/{date}-{seq}-{title}/` folder, updates `spec-history/up-to-date/` to match **actual code** (code = source of truth, archived docs = intent).
 
-**Done:** report the archive location and which up-to-date specs changed. The active
-folder is now clean for the next feature.
+**Done:** report archive location + which up-to-date specs changed. Active folder now clean for next feature.
 
 ## Gates are the point — don't blow through them
 
-The user chose a workflow with approval between phases on purpose. Each gate is a real
-stop: present the artifact, wait for an actual go-ahead, and only then dispatch the
-next subagent. If you find yourself wanting to skip a gate "to save a round-trip,"
-that's exactly the moment the gate exists for. The exception is a subagent reporting a
-hard blocker — surface that immediately, don't wait for the gate.
+User chose workflow with approval between phases on purpose. Each gate real stop: present artifact, wait for actual go-ahead, only then dispatch next subagent. Find yourself wanting skip gate "to save round-trip"? That's exactly moment gate exists for. Exception: subagent reporting hard blocker — surface immediately, don't wait for gate.
 
-The **one** sanctioned way to run without these gates is **auto mode** (below), which the
-user opts into explicitly and which replaces the human gates with an automated
-alignment verifier — not with nothing. Absent that opt-in, the gates hold.
+**One** sanctioned way run without these gates: **auto mode** (below) — user opts in explicitly, replaces human gates with automated alignment verifier, not with nothing. Absent that opt-in, gates hold.
 
 ## Auto mode — gateless, verifier-gated
 
-The user can run the whole chain **without stopping at the human gates**. Trigger auto
-mode when they say things like "auto mode", "run it end to end", "no gates", "don't stop
-to ask me", or "spec out and build X on auto". Confirm you understood the feature (the
-same one or two sharp questions as always — a fuzzy requirement poisons every phase, and
-in auto mode nobody catches it at a gate), then run all four phases in sequence in the
-same flow without pausing for approval between them.
+User can run whole chain **without stopping at human gates**. Trigger auto mode when they say things like "auto mode", "run it end to end", "no gates", "don't stop to ask me", or "spec out and build X on auto". Confirm you understood feature (same one or two sharp questions as always — fuzzy requirement poisons every phase, auto mode nobody catches it at gate), then run all four phases in sequence, same flow, without pausing for approval between them.
 
-**The human gates don't just disappear — an automated verifier takes their place.** In
-normal mode you show the user the spec and the design and wait for their go-ahead. In
-auto mode the `alignment-verifier` subagent does that judging: it reads the **original
-feature request** and the artifacts and confirms they faithfully and completely capture
-what was asked. Keep the exact wording of the user's request (plus any clarifications)
-so you can paste it into the verifier each time.
+**Human gates don't just disappear — automated verifier takes their place.** Normal mode: show user spec + design, wait for go-ahead. Auto mode: `alignment-verifier` subagent does that judging — reads **original feature request** + artifacts, confirms they faithfully + completely capture what asked. Keep exact wording of user's request (+ any clarifications) so you can paste into verifier each time.
 
 Run it like this:
 
 1. **Spec.** Dispatch `spec-writer` as normal.
-2. **Verify the spec.** Dispatch `alignment-verifier`, pasting the original requirement
-   and telling it only `spec.md` exists. If `CHANGES REQUESTED`, re-dispatch
-   `spec-writer` with the verifier's blocking + major misalignments pasted in, then
-   re-verify. Cap at about **two** rounds; if still misaligned, stop and bring it to the
-   user — auto mode doesn't mean loop forever.
+2. **Verify the spec.** Dispatch `alignment-verifier`, paste original requirement, tell it only `spec.md` exists. `CHANGES REQUESTED`? Re-dispatch `spec-writer` with verifier's blocking + major misalignments pasted in, then re-verify. Cap ~**two rounds**; still misaligned? Stop, bring to user — auto mode doesn't mean loop forever.
 3. **Design.** On `PASS`, dispatch `designer` immediately — no user gate.
-4. **Verify the design.** Dispatch `alignment-verifier` again, pasting the original
-   requirement and telling it the design phase has run so it checks `spec.md + design.md`.
-   Same fix/re-verify loop against `designer`, same ~two-round cap.
-   - If the designer returned real `DECISIONS NEEDED` (a genuine architectural fork with
-     no clear winner), **auto mode does not pick for the user on a decision that shapes
-     the product** — surface it and wait. But when the designer already recorded a
-     recommendation, prefer proceeding with that recommendation and noting it, rather
-     than stopping; only escalate forks where the choices are materially different for
-     the user. Use judgement.
-5. **Implement & review.** On `PASS`, skip the acknowledgement gate and dispatch
-   `implementer`, then run the normal implement ⇄ `code-reviewer` loop (that loop is
-   already automated and stays exactly as specified above, three-round cap included).
-6. **Archive.** When the review passes, dispatch `archivist` without waiting for the
-   user to declare the implementation done.
+4. **Verify the design.** Dispatch `alignment-verifier` again, paste original requirement, tell it design phase run so it checks `spec.md + design.md`. Same fix/re-verify loop against `designer`, same ~two-round cap.
+   - Designer returned real `DECISIONS NEEDED` (genuine architectural fork, no clear winner)? **Auto mode doesn't pick for user on decision that shapes product** — surface it, wait. Designer already recorded recommendation? Prefer proceeding with that recommendation, note it, rather than stopping; only escalate forks where choices materially different for user. Use judgement.
+5. **Implement & review.** `PASS`? Skip acknowledgement gate, dispatch `implementer`, run normal implement ⇄ `code-reviewer` loop (already automated, stays exactly as specified above, three-round cap included).
+6. **Archive.** Review passes? Dispatch `archivist` without waiting for user to declare implementation done.
 
-**What still stops auto mode** — these are not gates you're removing, they're genuine
-failures the flow can't paper over:
-- A subagent reporting a hard `BLOCKERS` (unreadable artifact, can't run tests, missing
-  input) — surface immediately.
-- A verifier or designer reporting `DECISIONS NEEDED` that's a genuine ambiguity in the
-  **requirement itself** — you cannot invent the user's intent; ask.
-- Any loop hitting its round cap without converging — that signals something deeper
-  (flawed requirement, spec/design disagreement); stop and report.
-- The implement/review escalation already defined above (a finding that's really a
-  spec/design flaw) — loop back to the right phase, don't spin.
+**What still stops auto mode** — not gates you're removing, genuine failures flow can't paper over:
+- Subagent reporting hard `BLOCKERS` (unreadable artifact, can't run tests, missing input) — surface immediately.
+- Verifier or designer reporting `DECISIONS NEEDED` that's genuine ambiguity in **requirement itself** — can't invent user's intent; ask.
+- Any loop hitting round cap without converging — signals something deeper (flawed requirement, spec/design disagreement); stop, report.
+- Implement/review escalation already defined above (finding really spec/design flaw) — loop back to right phase, don't spin.
 
-Report progress as you go so the user can interrupt, and give a single summary at the
-end: what was built, what the verifier and reviewer checked, the archive location, and
-which up-to-date specs changed. Auto mode trades the approval gates for automated
-verification and a clear audit trail — it does **not** trade away surfacing real
-blockers or genuine decisions.
+Report progress as you go so user can interrupt, give single summary at end: what built, what verifier + reviewer checked, archive location, which up-to-date specs changed. Auto mode trades approval gates for automated verification + clear audit trail — does **not** trade away surfacing real blockers or genuine decisions.
 
 ## If the user only wants one phase
 
-This skill is the full chain, but the user may say "just write the spec" or "redo the
-design." That's fine — dispatch only the relevant subagent, hit its gate, and stop.
-The file artifacts mean phases can run independently as long as their inputs exist.
+This skill = full chain, but user may say "just write the spec" or "redo the design." Fine — dispatch only relevant subagent, hit its gate, stop. File artifacts mean phases can run independently as long as inputs exist.
