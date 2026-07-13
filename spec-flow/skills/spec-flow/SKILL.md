@@ -22,7 +22,7 @@ The four phases, in order:
 
 1. **Spec** — dispatch the `spec-writer` subagent → produces `spec-history/active/spec.md`
 2. **Design** — dispatch the `designer` subagent → produces `spec-history/active/design.md`
-3. **Implement & Review** — dispatch `implementer` subagent to write code, then `code-reviewer` subagent to review; loop till review pass
+3. **Implement & Review** — split design's task breakdown into parallel waves; per task dispatch `implementer` then `code-reviewer`, looping till pass; run independent tasks concurrently on separate worktrees, then one integration review
 4. **Archive** — dispatch `archivist` subagent → files work away, refreshes up-to-date specs from real code
 
 Phases run different model tiers on purpose: design + review use higher-capability model (set bar, catch mistakes), implementation uses standard model (follows already-vetted design). Configured in each subagent's definition — you don't manage it.
@@ -71,19 +71,42 @@ Subagent can't back-and-forth with user mid-run, so designer records genuine arc
 
 ### Phase 3 — Implement & Review
 
-**Acknowledgement gate — stop, wait before any code written:** approved design does *not* auto-start implementation. Before dispatching `implementer`, **stop, explicitly ask user acknowledge you're about to begin building.** End message with that question, wait for reply. Only once user acknowledges, start loop below.
+**Acknowledgement gate — stop, wait before any code written:** approved design does *not* auto-start implementation. Before dispatching any `implementer`, **stop, explicitly ask user acknowledge you're about to begin building.** End message with that question, wait for reply. Only once user acknowledges, start below.
 
-After acknowledgement, phase = internal loop between two subagents before next user gate.
+After acknowledgement, this phase is your coordination job: read the plan, schedule the tasks, run each task's own implement ⇄ review loop, run those loops in **parallel** where the plan allows, then integrate.
 
-1. **Implement.** Dispatch `implementer` subagent. Reads `spec-history/active/spec.md` + `design.md`, writes code adhering to both, reports what built + any deviations.
+#### Step 0 — read the plan, build waves
 
-2. **Review.** Dispatch `code-reviewer` subagent. Reads spec, design, code, checks quality + adherence to both, **reports findings directly back to you in handoff report** (no file written). Report includes `VERDICT: PASS` or `CHANGES REQUESTED` + blocking/major/minor findings inline.
+Read `## Task Breakdown` in `spec-history/active/design.md`: tasks, each task's **files owned**, and its **depends-on** edges. Group into **waves** by dependency (topological levels): a task is runnable once all its deps are done; every runnable task forms the current wave and runs together. Sequential feature (one task, or a pure chain)? Every wave has one task — this degrades to the old single loop, which is fine.
 
-3. **Loop on changes.** Verdict `CHANGES REQUESTED`? Re-dispatch `implementer`, **relay reviewer's blocking + major findings in dispatch prompt** (paste them — no `review.md` for implementer to read), then re-dispatch `code-reviewer`. Repeat till passes. Cap ~**three rounds** — still failing after? Stop looping, bring situation to user — something deeper usually wrong (flawed design, unclear spec, or disagreement between subagents on what's correct).
+Sanity-check ownership before spawning: any two tasks in the same wave whose owned files overlap are a design bug (parallel work would collide on merge). Don't paper over it — bounce back to the `designer` to fix the split, or serialize the two by treating one as depending on the other.
 
-   Watch for reviewer reporting `DECISIONS NEEDED` or implementer reporting in `BLOCKERS` that finding really spec/design flaw. Not fix-and-retry — escalation: loop back to design or spec phase (+ its gate) instead of spinning implement/review loop.
+#### Step 1 — run each wave
 
-**Gate:** review passes? Summarize for user what implemented + what review checked (surface any deviations reviewer accepted). Let them review/test. Don't archive till user agrees implementation done.
+For each wave, one task at a time is *not* the goal — run the wave's tasks **concurrently**:
+
+1. **Isolate.** Per task, create a worktree + branch off the current base:
+   `git worktree add ../spec-flow-<taskID> -b spec-flow/<taskID>`. That path is the task's sandbox.
+
+2. **Implement (parallel).** Dispatch one `implementer` per task **in a single message (multiple Agent calls) so they run concurrently.** Each dispatch names: the task ID + scope, the **files it owns**, and its **worktree path** — tell it to do all edits there and touch nothing outside its owned set.
+
+3. **Review (per task).** As each implementer returns, dispatch its `code-reviewer` for that task — tell it *single-task* mode, give the worktree path + branch, and the requirements/design components that task covers. Reviewers for different tasks can run concurrently too.
+
+4. **Loop per task.** `CHANGES REQUESTED`? Re-dispatch that task's `implementer` (same worktree), **relaying the reviewer's blocking + major findings inline**, then re-review. Per task cap ~**three rounds**. Each task's loop is independent — one task looping doesn't block a sibling that already passed.
+
+5. **Merge on pass.** Task's review PASSES? Merge its branch into the base (`git merge --no-ff spec-flow/<taskID>`), then `git worktree remove` its sandbox. A clean merge is expected because ownership is disjoint; a **merge conflict means the task breakdown was wrong** — stop, escalate to `designer`, don't hand-resolve.
+
+Only when every task in a wave is merged do you start the next wave (its tasks may build on this wave's code).
+
+#### Step 2 — integration review
+
+All waves merged onto the base? Run one **integration** pass over the combined result: dispatch `implementer` to reconcile the seams (wiring, shared config/registration, cross-task tests) if anything needs it, then dispatch `code-reviewer` in *integration* mode over the full combined diff. Loop till pass (three-round cap). This catches what only surfaces when independently-built pieces meet.
+
+#### Escalation (any point in the phase)
+
+Reviewer reports `DECISIONS NEEDED`, or implementer reports in `BLOCKERS`, that a finding is really a spec/design flaw — **not** fix-and-retry. Stop that task, loop back to design or spec phase (+ its gate). A design-level flaw can invalidate the whole wave plan, so re-derive waves after the design changes. Any task's loop hitting the round cap without converging → stop, bring to user; something deeper is wrong.
+
+**Gate:** integration review passes? Summarize for user: what each task built, how they were split/parallelized, what the reviews checked (surface any deviations reviewers accepted). Let them review/test. Don't archive till user agrees implementation done.
 
 ### Phase 4 — Archive
 
@@ -107,7 +130,7 @@ Run it like this:
 
 1. **Spec.** Dispatch `spec-writer` as normal.
 2. **Design.** Once `spec.md` is written, dispatch `designer` immediately — no verification, no user gate.
-3. **Implement & review.** Once `design.md` is written, skip the acknowledgement gate, dispatch `implementer`, run normal implement ⇄ `code-reviewer` loop (already automated, stays exactly as specified above, three-round cap included).
+3. **Implement & review.** Once `design.md` is written, skip the acknowledgement gate and run the full Phase 3 machinery above — build waves from the task breakdown, spawn parallel implementers on worktrees, per-task implement ⇄ `code-reviewer` loops, merge, then integration review (all three-round caps included). Parallelism and per-task loops are already automated; auto mode only drops the human gates around them.
 4. **Archive.** Review passes? Dispatch `archivist` without waiting for user to declare implementation done.
 
 **Questions from spec-writer or designer are yours to answer, not the user's.** Handoff report comes back with `DECISIONS NEEDED` — an assumption it flagged, an either/or it couldn't resolve alone? Don't stop, don't dispatch anything to check it: read the context, make the call yourself the way the user would want, note the decision in your progress update, keep going. Designer's architectural fork already carries a recommendation? Take it, move on.

@@ -12,9 +12,9 @@ const SKILLS_SOURCE_DIR = path.join(SOURCE_ROOT, "skills");
 
 const AGENT_NAME_PREFIX = "spec-flow-";
 const MODEL_MAP = {
-  opus: { model: "gpt-5.5", effort: "medium" },
-  sonnet: { model: "gpt-5.4", effort: "medium" },
-  haiku: { model: "gpt-5.4-mini", effort: "medium" }
+  opus: { model: "gpt-5.6-terra", effort: "xhigh" },
+  sonnet: { model: "gpt-5.6-terra", effort: "medium" },
+  haiku: { model: "gpt-5.6-luna", effort: "high" }
 };
 
 main().catch((error) => {

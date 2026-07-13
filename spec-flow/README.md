@@ -16,6 +16,12 @@ The implement phase is itself a loop: the implementer writes code, a code review
 checks it against the spec, the design, and a quality bar, and the implementer fixes
 what's flagged — repeating until the review passes before it reaches your gate.
 
+The design carries a **task breakdown** — the work split into tasks with a dependency
+graph and disjoint file ownership. The orchestrator runs independent tasks **in
+parallel**, each on its own git worktree with its own implement ⇄ review loop, merges
+each as it passes, then runs one **integration review** over the combined result before
+your gate. Sequential features just run as a single task — no forced splitting.
+
 ## How it works
 
 ```

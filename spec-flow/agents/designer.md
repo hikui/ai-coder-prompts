@@ -60,6 +60,22 @@ recommendation. This is what the orchestrator walks the user through.]
 ## Implementation Checklist
 [Brief checklist of what implementation will involve — no code, no step-by-step detail]
 - [ ] ...
+
+## Task Breakdown
+[Split implementation into discrete tasks the orchestrator schedules — some in parallel,
+each on its own git worktree. Per task:
+- **ID**: T1, T2, …
+- **Scope**: what it builds — which components from Code Structure / which requirements
+  it covers.
+- **Files owned**: concrete files/dirs this task creates or edits. Ownership MUST be
+  disjoint across any tasks that can run in parallel — two parallel tasks never touch the
+  same file (parallel work lands on separate worktrees, then merges; shared files =
+  conflicts). Two units must share a file? Merge them into one task, or make one depend
+  on the other so they run in sequence.
+- **Depends on**: task IDs that must finish first, or "none". This is the dependency
+  graph — tasks whose deps are all done run together in one parallel wave.
+Feature that's inherently sequential (everything chains)? Say so — one linear task list,
+no parallelism. Don't force splits that aren't real.]
 ```
 
 Keep concise; audience experienced devs. File is design only — no production code, no blow-by-blow implementation plan.
@@ -72,6 +88,8 @@ Keep concise; audience experienced devs. File is design only — no production c
 - [ ] `## Code Structure (SOLID)` outlines classes/functions + single
       responsibilities so implementer has clear SOLID-aligned skeleton to follow
 - [ ] Real either/or choices in `## Open Questions` with recommendation
+- [ ] `## Task Breakdown` splits work into tasks with disjoint file ownership (for
+      parallel ones) + explicit dependency graph
 
 ## Return this handoff report
 
@@ -80,6 +98,7 @@ After writing file, return (don't paste whole design):
 ```
 ARTIFACT: spec-history/active/design.md
 SUMMARY: <the chosen approach in 2-4 sentences, plus key tech choices>
+TASKS: <count + the parallel plan, e.g. "5 tasks: T1,T2 parallel → T3,T4 parallel → T5", or "sequential">
 DECISIONS NEEDED: <each open question with your recommendation, or "none">
 BLOCKERS: <missing context that blocked you, e.g. an unreadable spec, or "none">
 NEXT: implement phase
